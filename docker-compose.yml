@@ -1,0 +1,8 @@
+services:
+  doctrine-aspects-php:
+    container_name: doctrine-aspects-php
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - ./:/app
