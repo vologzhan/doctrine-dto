@@ -126,8 +126,8 @@ class UserForNotification implements UserAspectInterface
 Все методы имеют одинаковую сигнатуру **принимаемых аргументов функции**:
   * `aspectClassName` название класса аспекта, например `UserForNotification::class`
   * `doctrine` - EntityManagerInterface или QueryBuilder
-  * `sql` (optional) - только для нативных запросов. Для QueryBuilder sql берется из билдера
-  * `params` (optional) - только для нативных запросов. Для QueryBuilder параметры берутся из билдера
+  * `sql (optional)` - только для нативных запросов. Для QueryBuilder sql берется из билдера
+  * `params (optional)` - только для нативных запросов. Для QueryBuilder параметры берутся из билдера
     * Неименованные параметры `?`, передается индексный массив (ключи - целые числа, нумерация идет по порядку и начинается с нуля)
     * Именованные параметры, например `:user_id`, передается ассоциативный массив
 
