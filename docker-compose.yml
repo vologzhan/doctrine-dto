@@ -1,6 +1,6 @@
 services:
-  doctrine-aspects-php:
-    container_name: doctrine-aspects-php
+  doctrine-dto-php:
+    container_name: doctrine-dto-php
     build:
       context: .
       dockerfile: docker/php/Dockerfile

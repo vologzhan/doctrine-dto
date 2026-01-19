@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Vologzhan\DoctrineAspects\Annotation;
+namespace Vologzhan\DoctrineDto\Annotation;
 
 /**
  * @Annotation
  * @Target("CLASS")
  */
-class Aspect
+class Dto
 {
     public string $entityClassName = '';
 }

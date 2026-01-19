@@ -1,8 +1,8 @@
 Маппинг SQL запросов на DTO с использованием [Doctrine](https://github.com/doctrine/orm)
 
-### Aspects
+### Dto
 
-Аспекты - это DTO с ограниченным количеством полей из Entity. Все данные для аспекта выбираются **одним SQL запросом**.
+Все данные для DTO выбираются **одним SQL запросом**.
 
 Решаемые проблемы:
   * Избежание [N+1](https://stackoverflow.com/questions/97197/what-is-the-n1-selects-problem-in-orm-object-relational-mapping)
@@ -20,10 +20,10 @@
       даже если они не будут использоваться кодом
     * Сами трейты некоторые считают антипаттерном
 
-### Entity and Aspect mapping
+### Entity mapping to Dto
 
-Сущности и аспекты связываются по названию полей в сущности. Наименование классов аспектов может быть любым, главное чтобы
-поля в аспекте совпадали с полями в сущности.
+Entity и DTO связываются по названию полей в сущности. Наименование классов DTO может быть любым, главное чтобы
+поля в DTO совпадали с полями в сущности.
 
 Рассмотрим на примере email рассылки с новостями города, шаблон письма:
 ```html
@@ -41,12 +41,13 @@
   * `User` many-to-one `City` используются `name`
   * `City` one-to-many `News` используются `title` и `link`
 
-Классы аспектов:
+Классы DTO:
+
 ```php
-use Vologzhan\DoctrineAspects\Annotation\Aspect;
+use Vologzhan\DoctrineDto\Annotation\Dto;
 
 /**
- * @Aspect(\App\Entity\User::class) 
+ * @Dto(\App\Entity\User::class) 
  */
 class UserForNotification
 {
@@ -76,17 +77,17 @@ class NewsForNotification
 }
 ```
 
-### Annotation [@Aspect](src/Annotation/Aspect.php)
+### Annotation [@Dto](src/Annotation/Dto.php)
 
-Добавляется к аспекту для связи с Entity. Аннотация нужна только при вызове методов [AspectMapper](src/AspectMapper.php)
-и только для аспекта указанного при вызове метода, для вложенных аспектов маппер получит их Entity из Doctrine.
+Добавляется к DTO для связи с Entity. Аннотация нужна только при вызове методов [DtoMapper](src/DtoMapper.php)
+и только для DTO указанного при вызове метода, для вложенных DTO маппер получит их Entity из Doctrine.
 **Обязательно указать полное имя класса с лидирующим \\** - только этот вариант нормально обрабатывает PhpStorm
 
 ```php
-use Vologzhan\DoctrineAspects\Annotation\Aspect;
+use Vologzhan\DoctrineDto\Annotation\Dto;
 
 /**
- * @Aspect(\App\Entity\User::class) 
+ * @Dto(\App\Entity\User::class) 
  */
 class UserForNotification
 {
@@ -94,39 +95,39 @@ class UserForNotification
 }
 ```
 
-Если аспекты для одной Entity не хранятся в одной директории и разбросаны по проекту, то рекомендуется создать пустой
-интерфейс с аннотацией и имплементировать этот пустой интерфейс для всех аспектов (даже вложенных), это упростит поиск аспектов в проекте.
+Если DTO для одной Entity не хранятся в одной директории и разбросаны по проекту, то рекомендуется создать пустой
+интерфейс с аннотацией и имплементировать этот пустой интерфейс для всех DTO (даже вложенных), это упростит поиск DTO в проекте.
 
 ```php
-use Vologzhan\DoctrineAspects\Annotation\Aspect;
+use Vologzhan\DoctrineDto\Annotation\Dto;
 
 /**
- * @Aspect(\App\Entity\User::class) 
+ * @Dto(\App\Entity\User::class) 
  */
-interface UserAspectInterface
+interface UserDtoInterface
 {
 }
 ```
 
 ```php
 // здесь нет аннотации, она указана в интерфейсе
-class UserForNotification implements UserAspectInterface
+class UserForNotification implements UserDtoInterface
 {
     // ...
 }
 ```
 
-### [AspectMapper](src/AspectMapper.php)
+### [DtoMapper](src/DtoMapper.php)
 
 Для возможности использования в любом репозитории и для избегания сложностей в настройке di все **методы** статические:
-  * `one` получение одного аспекта
-  * `oneOrNull` получение одного или нуль аспектов
-  * `array` для получения списка аспектов
+  * `one` получение одного DTO
+  * `oneOrNull` получение одного или нуль DTO
+  * `array` для получения списка DTO
 
-Типы **возвращаемых значений** выводятся с помощью дженериков на основании имени класса аспекта.
+Типы **возвращаемых значений** выводятся с помощью дженериков на основании имени класса DTO.
 
 Все методы имеют одинаковую сигнатуру **принимаемых аргументов функции**:
-  * `aspectClassName` название класса аспекта, например `UserForNotification::class`
+  * `dtoClassName` название класса DTO, например `UserForNotification::class`
   * `doctrine` - EntityManagerInterface или QueryBuilder
   * `sql (optional)` - только для нативных запросов. Для QueryBuilder sql берется из билдера
   * `params (optional)` - только для нативных запросов. Для QueryBuilder параметры берутся из билдера
@@ -135,14 +136,14 @@ class UserForNotification implements UserAspectInterface
 
 ### Native SQL
 
-В запросе в `SELECT` используется просто `*`, маппер на основе аспекта сам выберет какие колонки должны возвращаться.
+В запросе в `SELECT` используется просто `*`, маппер на основе DTO сам выберет какие колонки должны возвращаться.
 
 ```php
 namespace App\Repository;
 
-use App\Aspect\UserForNotification;
+use App\Dto\UserForNotification;
 use Doctrine\ORM\EntityManagerInterface;
-use Vologzhan\DoctrineAspects\AspectMapper;
+use Vologzhan\DoctrineDto\DtoMapper;
 
 class UserForNotificationRepository
 {
@@ -164,7 +165,7 @@ class UserForNotificationRepository
             WHERE u.id = ?
             SQL;
 
-        return AspectMapper::one(UserForNotification::class, $this->em, $sql, [$id]);
+        return DtoMapper::one(UserForNotification::class, $this->em, $sql, [$id]);
     }
 }
 ```
@@ -176,8 +177,8 @@ class UserForNotificationRepository
 ```php
 namespace App\Repository;
 
-use App\Aspect\UserForNotification;
-use Vologzhan\DoctrineAspects\AspectMapper;
+use App\Dto\UserForNotification;
+use Vologzhan\DoctrineDto\DtoMapper;
 
 class UserForNotificationRepository
 {
@@ -191,7 +192,7 @@ class UserForNotificationRepository
             ->andWhere('u.id = :id')
             ->setParameter(':id', $id);
 
-        return AspectMapper::one(UserForNotification::class, $qb);
+        return DtoMapper::one(UserForNotification::class, $qb);
     }
 }
 ```

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Vologzhan\DoctrineAspects\Metadata\Dto;
+namespace Vologzhan\DoctrineDto\Metadata\Dto;
 
-class AspectMetadata
+class DtoMetadata
 {
     public string $className;
 

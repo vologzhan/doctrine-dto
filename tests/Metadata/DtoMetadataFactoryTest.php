@@ -2,31 +2,31 @@
 
 declare(strict_types=1);
 
-namespace Vologzhan\DoctrineAspects\Tests\Metadata;
+namespace Vologzhan\DoctrineDto\Tests\Metadata;
 
 use PHPUnit\Framework\TestCase;
-use Vologzhan\DoctrineAspects\Annotation\Aspect;
-use Vologzhan\DoctrineAspects\Metadata\AspectMetadataFactory;
-use Vologzhan\DoctrineAspects\Metadata\Dto\AspectMetadata;
-use Vologzhan\DoctrineAspects\Metadata\Dto\Property;
-use Vologzhan\DoctrineAspects\Metadata\Dto\PropertyRel;
+use Vologzhan\DoctrineDto\Annotation\Dto;
+use Vologzhan\DoctrineDto\Metadata\DtoMetadataFactory;
+use Vologzhan\DoctrineDto\Metadata\Dto\DtoMetadata;
+use Vologzhan\DoctrineDto\Metadata\Dto\Property;
+use Vologzhan\DoctrineDto\Metadata\Dto\PropertyRel;
 
-final class AspectMetadataFactoryTest extends TestCase
+final class DtoMetadataFactoryTest extends TestCase
 {
     public function test(): void
     {
-        $metadata = AspectMetadataFactory::parse(UserForNotification::class);
+        $metadata = DtoMetadataFactory::parse(UserForNotification::class);
 
         $this->assertEquals(
-            new AspectMetadata(UserForNotification::class, [
-                new PropertyRel('profile', false, new AspectMetadata(ProfileForNotification::class, [
+            new DtoMetadata(UserForNotification::class, [
+                new PropertyRel('profile', false, new DtoMetadata(ProfileForNotification::class, [
                     new Property('firstName'),
                     new Property('secondName'),
                     new Property('email'),
                 ])),
-                new PropertyRel('city', false, new AspectMetadata(CityForNotification::class, [
+                new PropertyRel('city', false, new DtoMetadata(CityForNotification::class, [
                     new Property('name'),
-                    new PropertyRel('news', true, new AspectMetadata(NewsForNotification::class, [
+                    new PropertyRel('news', true, new DtoMetadata(NewsForNotification::class, [
                         new Property('title'),
                         new Property('link'),
                     ]))
@@ -38,7 +38,7 @@ final class AspectMetadataFactoryTest extends TestCase
 }
 
 /**
- * @Aspect(\App\Entity\User::class)
+ * @Dto(\App\Entity\User::class)
  */
 class UserForNotification
 {

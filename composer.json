@@ -1,16 +1,16 @@
 {
-    "name": "vologzhan/doctrine-aspects",
-    "description": "Aspects for Doctrine ORM",
+    "name": "vologzhan/doctrine-dto",
+    "description": "DTO for Doctrine ORM",
     "type": "library",
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Vologzhan\\DoctrineAspects\\": "src/"
+            "Vologzhan\\DoctrineDto\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Vologzhan\\DoctrineAspects\\Tests\\": "tests/"
+            "Vologzhan\\DoctrineDto\\Tests\\": "tests/"
         }
     },
     "authors": [
