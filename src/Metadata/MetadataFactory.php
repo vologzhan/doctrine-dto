@@ -6,9 +6,9 @@ namespace Vologzhan\DoctrineDto\Metadata;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use phpDocumentor\Reflection\TypeResolver;
-use phpDocumentor\Reflection\Types\Context;
-use phpDocumentor\Reflection\Types\ContextFactory;
+use Doctrine\ORM\Mapping\MappingException;
+use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Vologzhan\DoctrineDto\Exception\DoctrineDtoException;
 use Vologzhan\DoctrineDto\Metadata\Dto\DtoMetadata;
 use Vologzhan\DoctrineDto\Metadata\Dto\Property;
@@ -17,19 +17,23 @@ use Vologzhan\DoctrineDto\Metadata\Dto\PropertyRel;
 final class MetadataFactory
 {
     private EntityManagerInterface $em;
+    private PropertyInfoExtractor $propertyInfoExtractor;
 
     public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
+        $this->propertyInfoExtractor = new PropertyInfoExtractor([], [new PhpDocExtractor()]);
     }
 
     /**
      * @throws DoctrineDtoException
+     * @throws MappingException
+     * @throws \ReflectionException
      */
     public function create(string $dtoClassName, string $entityClassName): DtoMetadata
     {
-        $dtoReflection = self::getDtoReflection($dtoClassName);
-        $dtoMetadata = self::createRecursive($dtoReflection);
+        $dtoReflection = new \ReflectionClass($dtoClassName);
+        $dtoMetadata = $this->createRecursive($dtoReflection);
 
         $entityMetadata = $this->em->getClassMetadata($entityClassName);
         $this->addEntityMetadataRecursive($dtoMetadata, $entityMetadata);
@@ -39,12 +43,10 @@ final class MetadataFactory
 
     /**
      * @throws DoctrineDtoException
+     * @throws \ReflectionException
      */
-    private static function createRecursive(\ReflectionClass $class): DtoMetadata
+    private function createRecursive(\ReflectionClass $class): DtoMetadata
     {
-        /** @var Context|null $classContext */
-        $classContext = null;
-
         $properties = [];
         foreach ($class->getProperties() as $prop) {
             $type = $prop->getType();
@@ -53,27 +55,19 @@ final class MetadataFactory
             }
 
             if ($type->getName() === 'array') {
-                $docComment = $prop->getDocComment();
-                if (!$docComment) {
-                    throw new DoctrineDtoException("'$class->name::$prop->name' array must be typed using '@var ClassName[]'");
+                $docTypes = $this->propertyInfoExtractor->getTypes($class->name, $prop->name);
+                if (count($docTypes) !== 1 || !$docTypes[0]->isCollection()) {
+                    throw new DoctrineDtoException("'$class->name::$prop->name' array must be typed by a single class '@var ClassName[]'");
                 }
 
-                $match = [];
-                $isMatched = preg_match('/@var\s+(\S+)\[/', $docComment, $match);
-                if (!$isMatched) {
-                    throw new DoctrineDtoException("'$class->name::$prop->name' array must be typed using '@var ClassName[]'");
+                $valueTypes = $docTypes[0]->getCollectionValueTypes();
+                if (count($valueTypes) !== 1) {
+                    throw new DoctrineDtoException("'$class->name::$prop->name' array must be typed by a single class '@var ClassName[]'");
                 }
-                $nextClassName = $match[1];
 
-                if ($classContext === null) {
-                    $classContext = (new ContextFactory())->createFromReflector($class);
-                }
-                $resolvedType = (new TypeResolver())->resolve($nextClassName, $classContext);
-
-                $nextClassFullName = (string)$resolvedType->getFqsen();
-                $nextDto = self::getDtoReflection($nextClassFullName);
-
-                $properties[] = new PropertyRel($prop->name, true, self::createRecursive($nextDto));
+                $nextClassName = $valueTypes[0]->getClassName();
+                $nextClass = new \ReflectionClass($nextClassName);
+                $properties[] = new PropertyRel($prop->name, true, $this->createRecursive($nextClass));
                 continue;
             }
 
@@ -82,14 +76,18 @@ final class MetadataFactory
                 continue;
             }
 
-            $nextDto = self::getDtoReflection($type->getName());
-            $properties[] = new PropertyRel($prop->name, false, self::createRecursive($nextDto));
+            $nextClass = new \ReflectionClass($type->getName());
+            $properties[] = new PropertyRel($prop->name, false, $this->createRecursive($nextClass));
         }
 
         return new DtoMetadata($class->name, $properties);
     }
 
-    public function addEntityMetadataRecursive(DtoMetadata $dtoMetadata, ClassMetadata $entityMetadata): void
+    /**
+     * @throws DoctrineDtoException
+     * @throws MappingException
+     */
+    private function addEntityMetadataRecursive(DtoMetadata $dtoMetadata, ClassMetadata $entityMetadata): void
     {
         $dtoMetadata->tableName = $entityMetadata->getTableName();
 
@@ -115,18 +113,6 @@ final class MetadataFactory
                 throw new DoctrineDtoException("'$entityMetadata->name::$prop->name' does not exist");
             }
             $prop->columnName = $entityMetadata->getColumnName($prop->name);
-        }
-    }
-
-    /**
-     * @throws DoctrineDtoException
-     */
-    private static function getDtoReflection(string $dtoClassName): \ReflectionClass
-    {
-        try {
-            return new \ReflectionClass($dtoClassName);
-        } catch (\ReflectionException $e) {
-            throw new DoctrineDtoException("'$dtoClassName' does not exist", 0, $e);
         }
     }
 }
