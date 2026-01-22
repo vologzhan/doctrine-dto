@@ -203,3 +203,9 @@ class UserDtoRepository
 }
 ```
 
+
+### TODO
+
+* [ ] Detected recursion
+* [ ] Many-to-many
+* [ ] Cache metadata

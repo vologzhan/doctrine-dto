@@ -32,6 +32,7 @@ final class MetadataFactory
      */
     public function create(string $dtoClassName, string $entityClassName): DtoMetadata
     {
+        // todo вычислить entityClassName
         $dtoReflection = new \ReflectionClass($dtoClassName);
         $dtoMetadata = $this->createRecursive($dtoReflection);
 
@@ -89,6 +90,7 @@ final class MetadataFactory
      */
     private function addEntityMetadataRecursive(DtoMetadata $dtoMetadata, ClassMetadata $entityMetadata): void
     {
+        $dtoMetadata->primaryKey = $entityMetadata->getSingleIdentifierColumnName();
         $dtoMetadata->tableName = $entityMetadata->getTableName();
 
         foreach ($dtoMetadata->properties as $prop) {

@@ -8,6 +8,7 @@ class DtoMetadata
 {
     public string $className;
     public string $tableName;
+    public string $primaryKey;
 
     /** @var Property[]|PropertyRel[] */
     public array $properties;

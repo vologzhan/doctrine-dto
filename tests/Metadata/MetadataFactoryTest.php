@@ -21,7 +21,7 @@ use Vologzhan\DoctrineDto\Tests\Entity\User;
 
 final class MetadataFactoryTest extends TestCase
 {
-    private MetadataFactory $entityMetadataFactory;
+    private MetadataFactory $metadataFactory;
 
     protected function setUp(): void
     {
@@ -36,7 +36,7 @@ final class MetadataFactoryTest extends TestCase
             $config
         );
 
-        $this->entityMetadataFactory = new MetadataFactory($em);
+        $this->metadataFactory = new MetadataFactory($em);
     }
 
     public function testCreate(): void
@@ -57,7 +57,9 @@ final class MetadataFactoryTest extends TestCase
         ]);
 
         $expected->tableName = 'users';
+        $expected->primaryKey = 'id';
         $expected->properties[0]->dtoMetadata->tableName = 'profile';
+        $expected->properties[0]->dtoMetadata->primaryKey = 'id';
         $expected->properties[0]->property->columnName = 'id';
         $expected->properties[0]->foreignColumn = 'user_id';
         $expected->properties[0]->dtoMetadata->properties[0]->columnName = 'first_name';
@@ -65,17 +67,19 @@ final class MetadataFactoryTest extends TestCase
         $expected->properties[0]->dtoMetadata->properties[2]->columnName = 'email';
 
         $expected->properties[1]->dtoMetadata->tableName = 'city';
+        $expected->properties[1]->dtoMetadata->primaryKey = 'id';
         $expected->properties[1]->property->columnName = 'city_id';
         $expected->properties[1]->foreignColumn = 'id';
         $expected->properties[1]->dtoMetadata->properties[0]->columnName = 'name';
 
         $expected->properties[1]->dtoMetadata->properties[1]->dtoMetadata->tableName = 'news';
+        $expected->properties[1]->dtoMetadata->properties[1]->dtoMetadata->primaryKey = 'id';
         $expected->properties[1]->dtoMetadata->properties[1]->property->columnName = 'id';
         $expected->properties[1]->dtoMetadata->properties[1]->foreignColumn = 'city_id';
         $expected->properties[1]->dtoMetadata->properties[1]->dtoMetadata->properties[0]->columnName = 'title';
         $expected->properties[1]->dtoMetadata->properties[1]->dtoMetadata->properties[1]->columnName = 'link';
 
-        $actual = $this->entityMetadataFactory->create(UserDto::class, User::class);
+        $actual = $this->metadataFactory->create(UserDto::class, User::class);
 
         $this->assertEquals($expected, $actual);
     }
