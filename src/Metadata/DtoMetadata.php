@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Vologzhan\DoctrineDto\DtoMetadata;
+namespace Vologzhan\DoctrineDto\Metadata;
 
 class DtoMetadata
 {
@@ -12,13 +12,13 @@ class DtoMetadata
     public ?string $parentClass;
     public ?string $parentProperty;
 
-    public DtoDoctrine $doctrine;
-
     /** @var Property[] */
     public array $properties;
 
     /** @var DtoMetadata[] */
     public array $relations;
+
+    public DtoDoctrine $doctrine;
 
     public function __construct(
         string $className,
@@ -27,7 +27,7 @@ class DtoMetadata
         ?string $parentProperty,
         array $properties,
         array $relations,
-        ?dtoDoctrine $doctrine = null
+        ?DtoDoctrine $doctrine = null
     ) {
         $this->className = $className;
         $this->isArray = $isArray;

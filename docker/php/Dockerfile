@@ -5,7 +5,10 @@ RUN apk add --no-cache \
     unzip \
     zip \
     curl \
+    postgresql-dev \
     $PHPIZE_DEPS
+
+RUN docker-php-ext-install pdo pdo_pgsql pgsql
 
 RUN pecl install xdebug-3.1.6 \
     && docker-php-ext-enable xdebug

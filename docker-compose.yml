@@ -9,3 +9,20 @@ services:
       - ./docker/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
     environment:
       PHP_IDE_CONFIG: "serverName=doctrine-dto"
+    depends_on:
+      - doctrine-dto-db
+
+  doctrine-dto-db:
+    container_name: doctrine-dto-db
+    image: postgres:18
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: "doctrine-dto"
+      POSTGRES_DB: "doctrine-dto"
+      POSTGRES_USER: "doctrine-dto"
+    volumes:
+      - db_data:/var/lib/postgresql
+
+volumes:
+  db_data:

@@ -11,13 +11,13 @@ use Doctrine\ORM\Mapping\MappingException;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Vologzhan\DoctrineDto\Annotation\Dto;
-use Vologzhan\DoctrineDto\DtoMetadata\DtoDoctrine;
-use Vologzhan\DoctrineDto\DtoMetadata\DtoMetadata;
-use Vologzhan\DoctrineDto\DtoMetadata\Property;
-use Vologzhan\DoctrineDto\DtoMetadata\PropertyDoctrine;
+use Vologzhan\DoctrineDto\Metadata\DtoDoctrine;
+use Vologzhan\DoctrineDto\Metadata\DtoMetadata;
+use Vologzhan\DoctrineDto\Metadata\Property;
+use Vologzhan\DoctrineDto\Metadata\PropertyDoctrine;
 use Vologzhan\DoctrineDto\Exception\DoctrineDtoException;
 
-final class DtoMetadataFactory
+class DtoMetadataFactory
 {
     private EntityManagerInterface $em;
 

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Vologzhan\DoctrineDto\DtoMetadata;
+namespace Vologzhan\DoctrineDto\Metadata;
 
-final class DtoDoctrine
+class DtoDoctrine
 {
     public string $tableName;
     public string $primaryKey;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Vologzhan\DoctrineDto\DtoMetadata;
+namespace Vologzhan\DoctrineDto\Metadata;
 
-final class PropertyDoctrine
+class PropertyDoctrine
 {
     public string $columnName;
 

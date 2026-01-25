@@ -8,6 +8,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use PHPUnit\Framework\TestCase;
 use Vologzhan\DoctrineDto\DtoMapper;
@@ -23,33 +24,48 @@ final class DtoMapperTest extends TestCase
     protected function setUp(): void
     {
         $reader = new AnnotationReader();
-        $driver = new AnnotationDriver($reader, [__DIR__ . '../Entity']);
+        $driver = new AnnotationDriver($reader, [__DIR__ . '/Entity']);
 
         $config = Setup::createConfiguration(true);
         $config->setMetadataDriverImpl($driver);
 
         $this->em = EntityManager::create(
-            ['driver' => 'pdo_sqlite', 'memory' => true],
+            [
+                'driver'   => 'pdo_pgsql',
+                'host'     => 'doctrine-dto-db',
+                'port'     => 5432,
+                'user'     => 'doctrine-dto',
+                'password' => 'doctrine-dto',
+                'dbname'   => 'doctrine-dto',
+            ],
             $config
         );
 
+        $schemaTool = new SchemaTool($this->em);
+        $metadata = $this->em->getMetadataFactory()->getAllMetadata();
+        $sqls = $schemaTool->getCreateSchemaSql($metadata);
+
+        $conn = $this->em->getConnection();
+
+        foreach ($sqls as $sql) {
+            $conn->executeStatement($sql);
+        }
+
         $factory = new DtoMetadataFactory($this->em);
         $this->mapper = new DtoMapper($this->em, $factory);
+
+        $conn->beginTransaction();
     }
 
-    public function testArray(): void
+    public function testSelectEmpty(): void
     {
-        $qb = $this->em->createQueryBuilder()
-            ->select('u')
-            ->from(User::class, 'u')
-            ->leftJoin('u.profile', 'p')
-            ->leftJoin('u.city', 'c')
-            ->leftJoin('c.news', 'n')
-            ->andWhere('u.id = :id')
-            ->setParameter('id', 1);
+        $qb = $this->em
+            ->createQueryBuilder()
+            ->select('user', 'profile', 'photos')
+            ->from(User::class, 'user')
+            ->leftJoin('user.profile', 'profile')
+            ->leftJoin('profile.photos', 'photos');
 
-        $this->assertEquals(
-            'FROM users u0_ LEFT JOIN profile p1_ ON u0_.id = p1_.user_id LEFT JOIN city c2_ ON u0_.city_id = c2_.id LEFT JOIN news n3_ ON c2_.id = n3_.city_id',
-            $this->mapper->array(UserDto::class, $qb));
+        $this->assertEquals([], $this->mapper->array(UserDto::class, $qb));
     }
 }

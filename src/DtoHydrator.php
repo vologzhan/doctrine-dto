@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Vologzhan\DoctrineDto;
 
-use Vologzhan\DoctrineDto\ColumnMetadata\ColumnMetadata;
+use Vologzhan\DoctrineDto\SqlMetadata\ColumnMetadata;
 
-final class DtoHydrator
+class DtoHydrator
 {
     /**
      * @param ColumnMetadata[] $metadataColumns
      */
-    public static function hydrate(array $rows, array $metadataColumns): array
+    public static function hydrate(array $metadataColumns, array $rows): array
     {
         $dtoList = [];
 
@@ -82,6 +82,6 @@ final class DtoHydrator
 
         $dtoClassName = $metadataColumns[0]->dtoClassName;
 
-        return array_values($dtoList[$dtoClassName]);
+        return array_values($dtoList[$dtoClassName] ?? []);
     }
 }
